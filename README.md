@@ -1,8 +1,3 @@
-Got it — the formatting you pasted **is correct GitHub-Flavored Markdown** and the reason it “didn’t look right” earlier is because GitHub is very strict about **spacing, fences, and headers**.
-
-Below is a **clean, GitHub-perfect `README.md`** based on your **actual project model (including `MachineLearning` rules and your sample JSON)**.
-You can paste this directly into GitHub and it will render exactly as intended.
-
 ---
 
 # 🐸 JFrog Project Automation Framework
