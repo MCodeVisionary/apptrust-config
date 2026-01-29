@@ -76,9 +76,9 @@ env=prod
 .
 ├── create_jfrog_resources.py
 ├── projects/
-│   ├── mlt.json
-│   ├── pay.json
-│   └── dev.json
+│   ├── project-a.json
+│   ├── project-b.json
+│   └── project-c.json
 └── README.md
 ```
 
