@@ -1,0 +1,26 @@
+{
+  "projects": [
+    {
+      "project_key": "mlt",
+      "display_name": "ML Team",
+      "description": "ML team workspace",
+
+      "stages": ["DEV", "PROD"],
+
+      "package_types": [
+        { "name": "python", "remote_url": "https://pypi.org/simple" },
+        { "name": "docker", "remote_url": "https://registry-1.docker.io/" },
+        { "name": "HuggingFaceML", "remote_url": "https://huggingface.co" },
+        { "name": "MachineLearning", "remote_url": "" }
+      ],
+
+      "applications": [
+        {
+          "name": "ml-app",
+          "description": "this is ML application",
+          "applicationKey": "mlapp"
+        }
+      ]
+    }
+  ]
+}

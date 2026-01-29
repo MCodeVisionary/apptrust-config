@@ -1,0 +1,24 @@
+{
+  "projects": [
+    {
+      "project_key": "frontend",
+      "display_name": "Frontend Application",
+      "description": "Frontend Application",
+
+      "stages": ["DEV", "PROD"],
+
+      "package_types": [
+        { "name": "npm", "remote_url": "https://registry.npmjs.org/" },
+        { "name": "docker", "remote_url": "https://registry-1.docker.io/" }
+      ],
+
+      "applications": [
+        {
+          "name": "ui-app",
+          "description": "this is frontend application",
+          "applicationKey": "uiapp"
+        }
+      ]
+    }
+  ]
+}

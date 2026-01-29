@@ -1,0 +1,23 @@
+{
+  "projects": [
+    {
+      "project_key": "pay",
+      "display_name": "Payments Gateway",
+      "description": "Payments systems",
+
+      "stages": ["DEV", "PROD"],
+
+      "package_types": [
+        { "name": "python", "remote_url": "https://pypi.org/simple" }
+      ],
+
+      "applications": [
+        {
+          "name": "payment-api",
+          "description": "this is payment application",
+          "applicationKey": "payapp"
+        }
+      ]
+    }
+  ]
+}
