@@ -19,6 +19,16 @@ You need:
 | Python 3       | Installed                              |
 | curl           | Installed                              |
 
+
+---
+
+## 🔑 Environment Variables
+
+```bash
+export JPD_URL=https://{{JPDURL}}
+export ACCESS_TOKEN=<your-access-token>
+```
+
 ---
 
 ## 🚀 What This Tool Does
@@ -96,15 +106,6 @@ env=prod
 ```
 
 Each JSON file may contain **one or more projects**.
-
----
-
-## 🔑 Environment Variables
-
-```bash
-export JPD_URL=https://{{JPDURL}}
-export ACCESS_TOKEN=<your-access-token>
-```
 
 ---
 
