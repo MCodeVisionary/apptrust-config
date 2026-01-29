@@ -8,6 +8,19 @@ It follows **GitOps principles** so your JFrog platform can be provisioned, audi
 
 ---
 
+## 🔐 Prerequisites
+
+You need:
+
+| Requirement    | Description                            |
+| -------------- | -------------------------------------- |
+| JFrog Platform | Access, Artifactory & AppTrust enabled |
+| Access Token   | Platform Admin or Project Admin        |
+| Python 3       | Installed                              |
+| curl           | Installed                              |
+
+---
+
 ## 🚀 What This Tool Does
 
 For every project defined in JSON, the framework will:
@@ -86,19 +99,6 @@ Each JSON file may contain **one or more projects**.
 
 ---
 
-## 🔐 Prerequisites
-
-You need:
-
-| Requirement    | Description                            |
-| -------------- | -------------------------------------- |
-| JFrog Platform | Access, Artifactory & AppTrust enabled |
-| Access Token   | Platform Admin or Project Admin        |
-| Python 3       | Installed                              |
-| curl           | Installed                              |
-
----
-
 ## 🔑 Environment Variables
 
 ```bash
@@ -126,7 +126,7 @@ It can be run safely multiple times.
 
 ---
 
-## 📄 Example `projects/mlt.json`
+## 📄 Example `projects/project-c.json`
 
 ```json
 {
