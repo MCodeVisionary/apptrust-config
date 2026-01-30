@@ -21,7 +21,8 @@ HEADERS = [
     "-H", "Content-Type: application/json"
 ]
 
-NO_REMOTE_NO_VIRTUAL = {"machinelearning"}
+NO_REMOTE_NO_VIRTUAL = {"machinelearning"}   # Local only
+REMOTE_ONLY = {"nimmodel"}                   # Remote only
 
 # ==============================
 # CURL HELPER
@@ -47,7 +48,7 @@ def curl(method, url, payload=None, fail_on_error=True):
 # UTILITY
 # ==============================
 def repo_name(project_key, name):
-    return f"{project_key}-{name}"
+    return f"{project_key}-{name}".lower()
 
 # ==============================
 # GLOBAL STAGES (Lifecycle v2)
@@ -61,17 +62,18 @@ def stage_exists(stage):
     return status == "200"
 
 def create_stage(stage):
-    stage = stage.lower()
+    stage_upper = stage.upper()
+    stage_lower = stage.lower()
 
-    if stage_exists(stage):
-        print(f"ℹ️ Stage '{stage}' already exists")
+    if stage_exists(stage_lower):
+        print(f"ℹ️ Stage '{stage_upper}' already exists")
         return
 
-    print(f"🚀 Creating global stage '{stage}'")
+    print(f"🚀 Creating global stage '{stage_upper}'")
 
     payload = {
-        "name": stage,
-        "description": f"{stage} lifecycle stage"
+        "name": stage_lower,
+        "description": f"{stage_upper} lifecycle stage"
     }
 
     status, body = curl(
@@ -82,13 +84,13 @@ def create_stage(stage):
     )
 
     if status == "409":
-        print(f"ℹ️ Stage '{stage}' already exists")
+        print(f"ℹ️ Stage '{stage_upper}' already exists")
     elif status.startswith("4"):
-        print(f"❌ Failed to create stage '{stage}'")
+        print(f"❌ Failed to create stage '{stage_upper}'")
         print(body)
         sys.exit(1)
     else:
-        print(f"✅ Stage '{stage}' created")
+        print(f"✅ Stage '{stage_upper}' created")
 
 # ==============================
 # PROJECTS
@@ -131,7 +133,6 @@ def create_project(p):
         print(body)
         sys.exit(1)
 
-    # wait for propagation
     for _ in range(10):
         if project_exists(key):
             print(f"✅ Project '{key}' is ready")
@@ -157,7 +158,7 @@ def create_local_repo(name, pkg, project_key, stage):
         print(f"ℹ️ Local repo '{name}' already exists")
         return
 
-    print(f"📦 Creating local repo '{name}'")
+    print(f"📦 Creating local repo '{name}' → {stage}")
 
     payload = {
         "rclass": "local",
@@ -165,7 +166,7 @@ def create_local_repo(name, pkg, project_key, stage):
         "projectKey": project_key,
         "xrayIndex": True,
         "properties": {
-            "env": [stage.lower()],
+            "env": [stage],              # 🔥 DEV or PROD
             "project": [project_key]
         }
     }
@@ -177,13 +178,17 @@ def create_remote_repo(name, pkg, url, project_key):
         print(f"ℹ️ Remote repo '{name}' already exists")
         return
 
-    print(f"🌐 Creating remote repo '{name}'")
+    print(f"🌐 Creating remote repo '{name}' → DEV")
 
     payload = {
         "rclass": "remote",
         "packageType": pkg,
         "url": url,
-        "projectKey": project_key
+        "projectKey": project_key,
+        "properties": {
+            "env": ["DEV"],              # 🔥 Always DEV
+            "project": [project_key]
+        }
     }
 
     curl("PUT", f"{JFROG_URL}/artifactory/api/repositories/{name}", payload)
@@ -193,14 +198,18 @@ def create_virtual_repo(name, pkg, repos, project_key):
         print(f"ℹ️ Virtual repo '{name}' already exists")
         return
 
-    print(f"🧩 Creating virtual repo '{name}'")
+    print(f"🧩 Creating virtual repo '{name}' → DEV")
 
     payload = {
         "rclass": "virtual",
         "packageType": pkg,
         "repositories": repos,
         "defaultDeploymentRepo": repos[0],
-        "projectKey": project_key
+        "projectKey": project_key,
+        "properties": {
+            "env": ["DEV"],              # 🔥 Always DEV
+            "project": [project_key]
+        }
     }
 
     curl("PUT", f"{JFROG_URL}/artifactory/api/repositories/{name}", payload)
@@ -244,7 +253,7 @@ def process_project(p):
     print(f"Processing project {key}")
     print("==============================")
 
-    # 1️⃣ Global stages
+    # 1️⃣ Stages
     for s in p.get("stages", []):
         create_stage(s)
 
@@ -257,16 +266,24 @@ def process_project(p):
         pkg_lower = pkg_name.lower()
         remote_url = pkg.get("remote_url", "")
 
-        local_repos = []
-        for s in p.get("stages", []):
-            repo = repo_name(key, f"{pkg_name}-{s.lower()}-local")
-            create_local_repo(repo, pkg_name, key, s)
-            local_repos.append(repo)
-
-        if pkg_lower in NO_REMOTE_NO_VIRTUAL:
-            print(f"⏭️ Skipping remote & virtual for '{pkg_name}'")
+        # NimModel → Remote only
+        if pkg_lower in REMOTE_ONLY:
+            remote_repo = repo_name(key, f"{pkg_name}-remote")
+            create_remote_repo(remote_repo, pkg_name, remote_url, key)
             continue
 
+        local_repos = []
+        for s in p.get("stages", []):
+            stage_upper = s.upper()
+            repo = repo_name(key, f"{pkg_name}-{s.lower()}-local")
+            create_local_repo(repo, pkg_name, key, stage_upper)
+            local_repos.append(repo)
+
+        # MachineLearning → Local only
+        if pkg_lower in NO_REMOTE_NO_VIRTUAL:
+            continue
+
+        # Standard repos
         remote_repo = repo_name(key, f"{pkg_name}-remote")
         create_remote_repo(remote_repo, pkg_name, remote_url, key)
 

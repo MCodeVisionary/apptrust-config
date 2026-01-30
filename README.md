@@ -165,7 +165,7 @@ It can be run safely multiple times.
 For project `mlt`:
 
 | Resource                       |
-| ------------------------------ |
+|--------------------------------|
 | mlt-python-dev-local           |
 | mlt-python-prod-local          |
 | mlt-python-remote              |
@@ -180,6 +180,7 @@ For project `mlt`:
 | mlt-huggingfaceml-virtual      |
 | mlt-machinelearning-dev-local  |
 | mlt-machinelearning-prod-local |
+| mlt-NimModel-remote            |
 | ml-app (Application)           |
 
 ---

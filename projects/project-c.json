@@ -11,6 +11,7 @@
         { "name": "python", "remote_url": "https://pypi.org/simple" },
         { "name": "docker", "remote_url": "https://registry-1.docker.io/" },
         { "name": "HuggingFaceML", "remote_url": "https://huggingface.co" },
+        { "name": "NimModel", "remote_url":  "https://api.ngc.nvidia.com" },
         { "name": "MachineLearning", "remote_url": "" }
       ],
 
