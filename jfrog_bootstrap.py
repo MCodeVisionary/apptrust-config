@@ -25,6 +25,29 @@ NO_REMOTE_NO_VIRTUAL = {"machinelearning"}   # Local only
 REMOTE_ONLY = {"nimmodel"}                   # Remote only
 
 # ==============================
+# PACKAGE TYPE NORMALIZATION
+# ==============================
+def normalize_package_type(pkg_name):
+    mapping = {
+        "python": "pypi",
+        "pypi": "pypi",
+        "npm": "npm",
+        "maven": "maven",
+        "gradle": "gradle",
+        "docker": "docker",
+        "helm": "helm",
+        "nuget": "nuget",
+        "terraform": "terraform",
+        "go": "go",
+        "rpm": "rpm",
+        "debian": "debian",
+        "generic": "generic",
+        "machinelearning": "machinelearning",
+        "nimmodel": "nimmodel"
+    }
+    return mapping.get(pkg_name.lower(), pkg_name.lower())
+
+# ==============================
 # CURL HELPER
 # ==============================
 def curl(method, url, payload=None, fail_on_error=True):
@@ -153,7 +176,7 @@ def repo_exists(name):
     )
     return status == "200"
 
-def create_local_repo(name, pkg, project_key, stage):
+def create_local_repo(name, pkg_type, project_key, stage):
     if repo_exists(name):
         print(f"ℹ️ Local repo '{name}' already exists")
         return
@@ -162,18 +185,18 @@ def create_local_repo(name, pkg, project_key, stage):
 
     payload = {
         "rclass": "local",
-        "packageType": pkg,
+        "packageType": pkg_type,
         "projectKey": project_key,
         "xrayIndex": True,
         "properties": {
-            "env": [stage],              # 🔥 DEV or PROD
+            "env": [stage],
             "project": [project_key]
         }
     }
 
     curl("PUT", f"{JFROG_URL}/artifactory/api/repositories/{name}", payload)
 
-def create_remote_repo(name, pkg, url, project_key):
+def create_remote_repo(name, pkg_type, url, project_key):
     if repo_exists(name):
         print(f"ℹ️ Remote repo '{name}' already exists")
         return
@@ -182,18 +205,18 @@ def create_remote_repo(name, pkg, url, project_key):
 
     payload = {
         "rclass": "remote",
-        "packageType": pkg,
+        "packageType": pkg_type,
         "url": url,
         "projectKey": project_key,
         "properties": {
-            "env": ["DEV"],              # 🔥 Always DEV
+            "env": ["DEV"],
             "project": [project_key]
         }
     }
 
     curl("PUT", f"{JFROG_URL}/artifactory/api/repositories/{name}", payload)
 
-def create_virtual_repo(name, pkg, repos, project_key):
+def create_virtual_repo(name, pkg_type, repos, project_key):
     if repo_exists(name):
         print(f"ℹ️ Virtual repo '{name}' already exists")
         return
@@ -202,12 +225,12 @@ def create_virtual_repo(name, pkg, repos, project_key):
 
     payload = {
         "rclass": "virtual",
-        "packageType": pkg,
+        "packageType": pkg_type,
         "repositories": repos,
         "defaultDeploymentRepo": repos[0],
         "projectKey": project_key,
         "properties": {
-            "env": ["DEV"],              # 🔥 Always DEV
+            "env": ["DEV"],
             "project": [project_key]
         }
     }
@@ -264,31 +287,31 @@ def process_project(p):
     for pkg in p["package_types"]:
         pkg_name = pkg["name"]
         pkg_lower = pkg_name.lower()
+        pkg_type = normalize_package_type(pkg_name)
         remote_url = pkg.get("remote_url", "")
 
         # NimModel → Remote only
         if pkg_lower in REMOTE_ONLY:
             remote_repo = repo_name(key, f"{pkg_name}-remote")
-            create_remote_repo(remote_repo, pkg_name, remote_url, key)
+            create_remote_repo(remote_repo, pkg_type, remote_url, key)
             continue
 
         local_repos = []
         for s in p.get("stages", []):
             stage_upper = s.upper()
             repo = repo_name(key, f"{pkg_name}-{s.lower()}-local")
-            create_local_repo(repo, pkg_name, key, stage_upper)
+            create_local_repo(repo, pkg_type, key, stage_upper)
             local_repos.append(repo)
 
         # MachineLearning → Local only
         if pkg_lower in NO_REMOTE_NO_VIRTUAL:
             continue
 
-        # Standard repos
         remote_repo = repo_name(key, f"{pkg_name}-remote")
-        create_remote_repo(remote_repo, pkg_name, remote_url, key)
+        create_remote_repo(remote_repo, pkg_type, remote_url, key)
 
         virtual_repo = repo_name(key, f"{pkg_name}-virtual")
-        create_virtual_repo(virtual_repo, pkg_name, local_repos + [remote_repo], key)
+        create_virtual_repo(virtual_repo, pkg_type, local_repos + [remote_repo], key)
 
     # 4️⃣ Applications
     for app in p.get("applications", []):
