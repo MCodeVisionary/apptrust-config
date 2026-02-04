@@ -77,22 +77,6 @@ env=prod
 
 ---
 
-### Package Type Rules
-
-| Package Type    | Local | Remote | Virtual |
-| --------------- | ----- | ------ | ------- |
-| python          | ✅     | ✅      | ✅       |
-| docker          | ✅     | ✅      | ✅       |
-| HuggingFaceML   | ✅     | ✅      | ✅       |
-| MachineLearning | ✅     | ❌      | ❌       |
-
-`MachineLearning` is treated as an **internal ML model store**:
-
-* No remote proxy
-* No virtual repository
-
----
-
 ## 📂 Repository Structure
 
 ```
@@ -196,14 +180,4 @@ The framework:
 * Uses **JFrog Access API v2** for lifecycle stages
 
 ---
-
-## 🔮 Roadmap
-
-This architecture supports:
-
-* Promotion pipelines
-* Xray security policies
-* Environment-based access control
-* CI/CD onboarding
-* Multi-team GitOps
 
