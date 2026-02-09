@@ -5,9 +5,23 @@ import glob
 import os
 import time
 
+def load_env_file(path=".env"):
+    if not os.path.exists(path):
+        return
+    with open(path) as fh:
+        for raw_line in fh:
+            line = raw_line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            os.environ.setdefault(key, value)
+
 # ==============================
 # CONFIG
 # ==============================
+load_env_file()
 JFROG_URL = os.getenv("JPD_URL")          # https://soleng.jfrog.io
 JFROG_TOKEN = os.getenv("ACCESS_TOKEN")
 PROJECTS_DIR = "./projects"
@@ -46,6 +60,25 @@ def normalize_package_type(pkg_name):
         "nimmodel": "nimmodel"
     }
     return mapping.get(pkg_name.lower(), pkg_name.lower())
+
+def get_repo_layout_ref(pkg_type):
+    layout_mapping = {
+        "maven": "maven-2-default",
+        "gradle": "maven-2-default",
+        "npm": "npm-default",
+        "pypi": "simple-default",
+        "docker": "docker-default",
+        "helm": "helm-default",
+        "nuget": "nuget-default",
+        "terraform": "terraform-default",
+        "go": "go-default",
+        "rpm": "rpm-default",
+        "debian": "debian-default",
+        "generic": "simple-default",
+        "machinelearning": "simple-default",
+        "nimmodel": "simple-default"
+    }
+    return layout_mapping.get(pkg_type.lower(), "simple-default")
 
 # ==============================
 # CURL HELPER
@@ -186,6 +219,7 @@ def create_local_repo(name, pkg_type, project_key, stage):
     payload = {
         "rclass": "local",
         "packageType": pkg_type,
+        "repoLayoutRef": get_repo_layout_ref(pkg_type),
         "projectKey": project_key,
         "xrayIndex": True,
         "properties": {
@@ -206,6 +240,7 @@ def create_remote_repo(name, pkg_type, url, project_key):
     payload = {
         "rclass": "remote",
         "packageType": pkg_type,
+        "repoLayoutRef": get_repo_layout_ref(pkg_type),
         "url": url,
         "projectKey": project_key,
         "properties": {
@@ -226,6 +261,7 @@ def create_virtual_repo(name, pkg_type, repos, project_key):
     payload = {
         "rclass": "virtual",
         "packageType": pkg_type,
+        "repoLayoutRef": get_repo_layout_ref(pkg_type),
         "repositories": repos,
         "defaultDeploymentRepo": repos[0],
         "projectKey": project_key,
